@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Spin Wheel Captain Picker</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #4facfe, #00f2fe);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    h1 {
+      margin-bottom: 10px;
+      text-align: center;
+    }
+    #popup {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+      padding: 15px 30px;
+      border-radius: 10px;
+      font-size: 1.2em;
+      z-index: 999;
+      display: none;
+    }
+    #playerListToggle {
+      margin-bottom: 10px;
+    }
+    #playerList {
+      display: none;
+      margin-bottom: 20px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 10px;
+      border-radius: 8px;
+      max-width: 300px;
+      text-align: center;
+    }
+    .player-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 5px 0;
+    }
+    .remove-btn {
+      background: red;
+      border: none;
+      color: white;
+      border-radius: 4px;
+      padding: 2px 6px;
+      cursor: pointer;
+    }
+    #wheelContainer {
+      width: 90vw;
+      max-width: 350px;
+      height: 90vw;
+      max-height: 350px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 10px solid #fff;
+      position: absolute;
+      background: #222;
+      overflow: hidden;
+    }
+    .segment {
+      position: absolute;
+      width: 50%;
+      height: 50%;
+      transform-origin: 100% 100%;
+    }
+    #spinBtnCenter {
+      z-index: 10;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 30px;
+      background-color: #fff;
+      color: #333;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+    #pointer {
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 30px solid red;
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+    }
+    #controls {
+      margin-top: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      width: 100%;
+      max-width: 400px;
+    }
+    .control-section {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    .control-section h3 {
+      margin-top: 0;
+      font-size: 1.1em;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+    .control-section button {
+      width: 100%;
+      margin-bottom: 10px;
+      background-color: #fff;
+      color: #333;
+      font-weight: bold;
+      border-radius: 6px;
+      padding: 10px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .control-section button:hover {
+      background-color: #f0f0f0;
+    }
+    input#playerInput {
+      margin-bottom: 10px;
+      padding: 8px;
+      font-size: 16px;
+      width: 100%;
+      max-width: 300px;
+      border: none;
+      border-radius: 5px;
+    }
+    #result {
+      margin-top: 30px;
+      padding: 15px 25px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 10px;
+      font-size: 1.4em;
+      font-weight: bold;
+      color: #ffff66;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      text-align: center;
+    }
+    #coin {
+      margin-top: 10px;
+      font-size: 2em;
+      transition: transform 2s;
+    }
+  </style>
+</head>
+<body>
+  <div id="popup"></div>
+  <h1>🎯 Spin to Choose the Captain 🎯</h1>
+  <button id="playerListToggle" onclick="togglePlayerList()">👥 Click to See Player List</button>
+  <div id="playerList"></div>
+  <div id="pointer"></div>
+  <div id="wheelContainer">
+    <div id="wheel"></div>
+    <button id="spinBtnCenter" onclick="spinWheel()">🎡 Spin</button>
+  </div>
+  <div id="controls">
+    <div class="control-section">
+      <h3>Add a New Player</h3>
+      <input type="text" id="playerInput" placeholder="Enter player name">
+      <button onclick="addPlayer()">Add Player</button>
+    </div>
+    <div class="control-section">
+      <h3>Spin Challenges</h3>
+      <button onclick="spinChallenge(5)">🎯 Spin 5 Times Challenge</button>
+      <button onclick="spinChallenge(10)">🎯 Spin 10 Times Challenge</button>
+    </div>
+    <div class="control-section">
+      <h3>Coin Toss</h3>
+      <button onclick="tossCoin()">🪙 Toss: Head or Tail</button>
+      <div id="coin"></div>
+    </div>
+  </div>
+  <div id="result"></div>
+  <audio id="spinSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_49ab957c4b.mp3"></audio>
+  <audio id="coinSound" src="https://cdn.pixabay.com/audio/2022/03/15/audio_7c5c906e84.mp3"></audio>
+  <script>
+    let players = ["Manjeet", "Prateek", "Kapil", "Diwakar", "Sumit", "Ruvab", "Prithvi", "Ronnie", "Mayank"];
+    const wheel = document.getElementById('wheel');
+    const playerList = document.getElementById('playerList');
+    const spinSound = document.getElementById('spinSound');
+    const coinSound = document.getElementById('coinSound');
+    let currentRotation = 0;
+
+    window.onload = () => {
+      const popup = document.getElementById('popup');
+      popup.innerText = "Aa gye bhaiya 😂😂😂";
+      popup.style.display = 'block';
+      setTimeout(() => popup.style.display = 'none', 1000);
+      drawWheel();
+      updatePlayerList();
+    }
+
+    function togglePlayerList() {
+      playerList.style.display = playerList.style.display === 'block' ? 'none' : 'block';
+      updatePlayerList();
+    }
+
+    function updatePlayerList() {
+      playerList.innerHTML = '<strong>Players:</strong><br>' + players.map((p, i) => `<div class="player-entry">${p} <button class='remove-btn' onclick='removePlayer(${i})'>x</button></div>`).join('');
+    }
+
+    function removePlayer(index) {
+      players.splice(index, 1);
+      drawWheel();
+      updatePlayerList();
+    }
+
+    function drawWheel() {
+      const angle = 360 / players.length;
+      wheel.innerHTML = '';
+      players.forEach((_, index) => {
+        const segment = document.createElement('div');
+        segment.className = 'segment';
+        segment.style.transform = `rotate(${index * angle}deg) skewY(-${90 - angle}deg)`;
+        segment.style.backgroundColor = `hsl(${index * angle}, 70%, 50%)`;
+        wheel.appendChild(segment);
+      });
+    }
+
+    function addPlayer() {
+      const input = document.getElementById('playerInput');
+      const name = input.value.trim();
+      if (name && !players.includes(name)) {
+        players.push(name);
+        drawWheel();
+        updatePlayerList();
+        input.value = '';
+      }
+    }
+
+    function spinWheel(callback) {
+      const result = document.getElementById('result');
+      result.innerText = "";
+      spinSound.play();
+      const angle = 360 / players.length;
+      const index = Math.floor(Math.random() * players.length);
+      const targetRotation = 360 * 5 + (360 - index * angle - angle / 2);
+      currentRotation += targetRotation;
+      wheel.style.transition = 'transform 2s ease-out';
+      wheel.style.transform = `rotate(${currentRotation}deg)`;
+      setTimeout(() => {
+        const selectedPlayer = players[index];
+        result.innerText = `🎊 Your captain is: ${selectedPlayer} 🎊`;
+        if (callback) callback(selectedPlayer);
+      }, 2000);
+    }
+
+    function spinChallenge(times) {
+      const result = document.getElementById('result');
+      result.innerText = `🔁 Spinning ${times} times...`;
+      let results = [];
+      let count = 0;
+
+      function singleSpin() {
+        spinWheel(player => {
+          results.push(player);
+          count++;
+          if (count < times) {
+            setTimeout(singleSpin, 500);
+          } else {
+            let freq = {};
+            results.forEach(p => freq[p] = (freq[p] || 0) + 1);
+            const captain = Object.keys(freq).reduce((a, b) => freq[a] > freq[b] ? a : b);
+            result.innerText = `🎯 Results: ${results.join(', ')}\n👑 Captain is: ${captain}`;
+          }
+        });
+      }
+      singleSpin();
+    }
+
+    function tossCoin() {
+      const result = document.getElementById('result');
+      const coin = document.getElementById('coin');
+      coin.innerText = "🪙";
+      coin.style.transform = 'rotateY(0)';
+      coinSound.play();
+      coin.style.transition = 'transform 2s';
+      setTimeout(() => {
+        coin.style.transform = 'rotateY(1440deg)';
+      }, 50);
+
+      setTimeout(() => {
+        const toss = Math.random() < 0.5 ? "Head" : "Tail";
+        coin.innerText = toss === "Head" ? "🙂 Head 🎉" : "😎 Tail 🎉";
+        result.innerText = `🎊 Toss Result: ${toss}`;
+      }, 5000);
+    }
+  </script>
+</body>
+</html>
